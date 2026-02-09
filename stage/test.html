@@ -1,0 +1,59 @@
+<html>
+<head>
+</head>
+<body>
+<p id="output"></p>
+<script src="hackmud_wasm.js"></script>
+<script>
+var v = [
+    ((x)=>typeof x),
+    (function(i,...x){return v[m.exports.callback(i, v.push(x)-1, new.target!==undefined)]}),
+    "new.target",
+    [null, null]  // arguments
+];
+var m;
+const o = {i:{
+    getf64(id) {return v[id]},
+    putf64(val) {return v.push(val)-1},
+    putstr(loc, len) {
+        var s=new Uint16Array(m.exports.memory.buffer.slice(loc, loc+len*2));
+        return v.push(String.fromCharCode(...s))-1;
+    },
+    getstr(id, loc) {
+        var b=new DataView(m.exports.memory.buffer);
+        for (var i=0;i<v[id].length;i++)
+            b.setUint16(loc+i*2,v[id].charCodeAt(i),true);
+    },
+    getlen(id) {return v[id].length},
+    getprop(id, arg) {return v.push(v[id][v[arg]])-1},
+    setprop(id, arg, i) {v[id][v[arg]] = v[i]},
+    delprop(id, arg) {return delete v[id][v[arg]]},
+    call0(id) {return v.push(v[id]())-1},
+    call1(id, arg1) {return v.push(v[id](v[arg1]))-1},
+    call2(id, arg1, arg2) {return v.push(v[id](v[arg1], v[arg2]))-1},
+    call3(id, arg1, arg2, arg3) {return v.push(v[id](v[arg1], v[arg2], v[arg3]))-1},
+    error(id) {throw v[id]},
+    trya(id, args, n) {
+        try {
+            if (n) {
+                v.push(new v[id](...(v[args])));
+            } else {
+                v.push(v[id](...(v[args])));
+            }
+            return v.push(true)-2;
+        }catch(e){
+            v.push(e);
+            return v.push(false)-2;
+        }
+    },
+    putarray(loc, len) {
+        var a=new Uint32Array(m.exports.memory.buffer.slice(loc, loc+len*4));
+        return v.push(a.map((x)=>v[x]))-1;
+    },
+}};
+m=new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(n)), o);
+m.exports.run();
+document.getElementById("output").innerHTML = v[r]
+</script>
+</body>
+</html>
